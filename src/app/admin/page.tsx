@@ -125,20 +125,31 @@ export default function AdminPage() {
 
     const handleDeleteSale = async (sale: SaleRecord) => {
         if (!(await verifyAdminPassword())) return;
+
         if (!confirm(`Delete sale #${sale.id}? This cannot be undone.`)) return;
 
-        const response = await fetch(`/api/sales/${sale.id}`, {
-            method: "DELETE",
-        });
+        try {
+            const response = await fetch(`/api/sales/${sale.id}`, {
+                method: "DELETE",
+            });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            alert(errorData.error || "Failed to delete sale.");
-            return;
+            if (!response.ok) {
+                const text = await response.text();
+                let msg = text;
+                try {
+                    const json = JSON.parse(text);
+                    msg = json.error || JSON.stringify(json);
+                } catch (e) {}
+                alert(msg || "Failed to delete sale.");
+                return;
+            }
+
+            setSales((current) => current.filter((item) => item.id !== sale.id));
+            alert("Sale deleted successfully.");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to delete sale.");
         }
-
-        setSales((current) => current.filter((item) => item.id !== sale.id));
-        alert("Sale deleted successfully.");
     };
 
     const handleSaleItemChange = (index: number, field: keyof SaleRecord["items"][0], value: string | number) => {
@@ -1088,13 +1099,6 @@ export default function AdminPage() {
                                                             className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                                                         >
                                                             Print
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleEditSale(sale)}
-                                                            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                                                        >
-                                                            Edit
                                                         </button>
                                                         <button
                                                             type="button"
