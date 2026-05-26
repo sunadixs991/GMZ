@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseClient";
 
 export async function GET() {
-  const { data, error } = await supabase.from("categories").select("name");
+  const sb = supabaseServer as any;
+  const { data, error } = await sb.from("categories").select("name");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  const names = (data ?? []).map((category) => category.name);
+  const names = (data ?? []).map((category: any) => category.name);
   return NextResponse.json(names);
 }
 
@@ -16,11 +17,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Category name is required" }, { status: 400 });
     }
 
-    const { data: existing, error: existingErr } = await supabase.from("categories").select("*").eq("name", name.trim()).maybeSingle();
+    const sb = supabaseServer as any;
+    const { data: existing, error: existingErr } = await sb.from("categories").select("*").eq("name", name.trim()).maybeSingle();
     if (existingErr) return NextResponse.json({ error: existingErr.message }, { status: 500 });
     if (existing) return NextResponse.json({ error: "Category already exists" }, { status: 400 });
 
-    const { data, error } = await supabase.from("categories").insert({ name: name.trim() }).select().single();
+    const { data, error } = await sb.from("categories").insert({ name: name.trim() }).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
   } catch (error) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseClient";
 
 export async function GET(
   request: NextRequest,
@@ -7,16 +7,17 @@ export async function GET(
 ) {
   const { id } = await params;
   console.log(`[API /api/products/[id]] GET request for id: ${id}`);
+  const sb = supabaseServer as any;
 
-  const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+  const { data, error } = await sb.from("products").select("*").eq("id", id).single();
   console.log(`[API /api/products/[id]] Supabase query for id ${id}: error=${error?.message}, data=${data ? 'found' : 'not found'}`);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (data?.image && !data.image.startsWith("http")) {
     console.log(`[API /api/products/[id]] Attempting to sign image for id ${id}: ${data.image}`);
-    const { data: signedData, error: signedError } = await supabase.storage
-      .from("product-images")
-      .createSignedUrl(data.image, 60 * 60 * 24 * 7);
+      const { data: signedData, error: signedError } = await sb.storage
+        .from("product-images")
+        .createSignedUrl(data.image, 60 * 60 * 24 * 7);
 
     console.log(`[API /api/products/[id]] Image signing: error=${signedError?.message}, signed=${!!signedData?.signedUrl}`);
     if (!signedError && signedData?.signedUrl) {
@@ -35,7 +36,8 @@ export async function PUT(
   const { id } = await params;
   const body = await request.json();
 
-  const { data, error } = await supabase
+  const sb = supabaseServer as any;
+  const { data, error } = await sb
     .from("products")
     .update(body)
     .eq("id", id)
@@ -51,7 +53,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { data, error } = await supabase.from("products").delete().eq("id", id).select().single();
+  const sb = supabaseServer as any;
+  const { data, error } = await sb.from("products").delete().eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }

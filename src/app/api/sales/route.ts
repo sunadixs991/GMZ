@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SaleRecord } from "@/lib/types";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseClient";
 
 export async function GET(request: NextRequest) {
   const from = request.nextUrl.searchParams.get("from");
   const to = request.nextUrl.searchParams.get("to");
 
-  const { data, error } = await supabase.from("sales").select("*");
+  const sb = supabaseServer as any;
+  const { data, error } = await sb.from("sales").select("*");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   let sales = data ?? [];
   if (from || to) {
     const fromDate = from ? new Date(`${from}T00:00:00`) : null;
     const toDate = to ? new Date(`${to}T23:59:59`) : null;
-    sales = sales.filter((sale) => {
+    sales = sales.filter((sale: any) => {
       const saleDate = new Date(sale.date);
       if (fromDate && saleDate < fromDate) return false;
       if (toDate && saleDate > toDate) return false;
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
     ...body,
   } as SaleRecord;
 
-  const { data, error } = await supabase.from("sales").insert(newSale).select().single();
+  const sb = supabaseServer as any;
+  const { data, error } = await sb.from("sales").insert(newSale).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }

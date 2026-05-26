@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Product, SaleRecord } from "@/lib/types";
+import { supabase } from "@/lib/supabaseClient";
 
 interface CartItem {
     product: Product;
     quantity: number;
 }
 
-const ADMIN_PASSWORD = "admin123"; // In production, use proper authentication
-
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [products, setProducts] = useState<Product[]>([]);
@@ -45,14 +45,17 @@ export default function AdminPage() {
 
     useEffect(() => {
         setMounted(true);
-        // Check if already authenticated
-        const authStatus = localStorage.getItem("adminAuthenticated");
-        if (authStatus === "true") {
-            setIsAuthenticated(true);
-            fetchProducts();
-            fetchCategories();
-            fetchSales();
-        }
+        const initializeAuth = async () => {
+            const { data, error } = await supabase.auth.getSession();
+            if (data?.session && !error) {
+                setIsAuthenticated(true);
+                fetchProducts();
+                fetchCategories();
+                fetchSales();
+            }
+        };
+
+        initializeAuth();
     }, []);
 
     const fetchProducts = async () => {
@@ -91,9 +94,9 @@ export default function AdminPage() {
     };
 
     const verifyAdminPassword = async () => {
-        const enteredPassword = prompt("Enter admin password to confirm this action:");
-        if (enteredPassword !== ADMIN_PASSWORD) {
-            alert("Password incorrect. Action cancelled.");
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data?.session) {
+            alert("Admin access required. Please sign in.");
             return false;
         }
         return true;
@@ -177,23 +180,40 @@ export default function AdminPage() {
         setSaleEditForm({ date: "", items: [] });
     };
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === ADMIN_PASSWORD) {
-            localStorage.setItem("adminAuthenticated", "true");
+        setError("");
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email.trim(),
+                password,
+            });
+
+            if (error || !data?.user) {
+                setError(error?.message || "Invalid credentials");
+                return;
+            }
+
             setIsAuthenticated(true);
             setError("");
             fetchProducts();
             fetchCategories();
             fetchSales();
-        } else {
-            setError("Invalid password");
+        } catch (err) {
+            setError("Network error");
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("adminAuthenticated");
+    const handleLogout = async () => {
+        try {
+            await supabase.auth.signOut();
+        } catch (err) {
+            console.warn("Logout failed", err);
+        }
+
         setIsAuthenticated(false);
+        setEmail("");
         setPassword("");
         setProducts([]);
         setCategories([]);
@@ -591,11 +611,23 @@ export default function AdminPage() {
                                 Admin Access
                             </p>
                             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-                                Enter Admin Password
+                                Admin Login
                             </h1>
+                            <p className="mt-2 text-sm text-slate-600">Sign in with your administrator account to manage the store.</p>
                         </div>
                         <form onSubmit={handleLogin} className="mt-10 max-w-md mx-auto">
                             <div>
+                                <label className="block text-sm font-medium text-slate-700">Email</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    placeholder="you@company.com"
+                                />
+                            </div>
+                            <div className="mt-4">
                                 <label className="block text-sm font-medium text-slate-700">Password</label>
                                 <input
                                     type="password"

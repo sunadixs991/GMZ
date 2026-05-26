@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "create-admin": "node scripts/createAdmin.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -13,6 +14,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "@supabase/supabase-js": "^2.35.0"
+    ,"bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

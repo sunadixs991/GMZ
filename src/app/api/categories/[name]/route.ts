@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseClient";
 
 export async function PUT(
   request: NextRequest,
@@ -14,11 +14,12 @@ export async function PUT(
     }
 
     const decodedOld = decodeURIComponent(oldName);
-    const { data: existing, error: existingErr } = await supabase.from("categories").select("*").eq("name", decodedOld).maybeSingle();
+    const sb = supabaseServer as any;
+    const { data: existing, error: existingErr } = await sb.from("categories").select("*").eq("name", decodedOld).maybeSingle();
     if (existingErr) return NextResponse.json({ error: existingErr.message }, { status: 500 });
     if (!existing) return NextResponse.json({ error: "Category not found" }, { status: 404 });
 
-    const { data, error } = await supabase.from("categories").update({ name: newName.trim() }).eq("name", decodedOld).select().single();
+    const { data, error } = await sb.from("categories").update({ name: newName.trim() }).eq("name", decodedOld).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
   } catch (error) {
@@ -33,7 +34,8 @@ export async function DELETE(
   try {
     const { name } = await params;
     const decoded = decodeURIComponent(name);
-    const { data, error } = await supabase.from("categories").delete().eq("name", decoded).select().single();
+    const sb = supabaseServer as any;
+    const { data, error } = await sb.from("categories").delete().eq("name", decoded).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
   } catch (error) {

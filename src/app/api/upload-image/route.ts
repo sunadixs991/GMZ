@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseClient";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
   const fileName = `${Date.now()}-${imageFile.name}`;
   const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
 
-  const { error: uploadError } = await supabase.storage
+  const sb = supabaseServer as any;
+  const { error: uploadError } = await sb.storage
     .from("product-images")
     .upload(fileName, fileBuffer, {
       contentType: imageFile.type,
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+  const { data } = sb.storage.from("product-images").getPublicUrl(fileName);
   if (!data?.publicUrl) {
     return NextResponse.json({ error: "Unable to create public URL." }, { status: 500 });
   }
