@@ -108,6 +108,17 @@ export default function AdminPage() {
         fetchSales(today);
     };
 
+    const handleShowAllSales = async () => {
+        try {
+            const response = await fetch("/api/sales");
+            const data = await response.json();
+            setSales(data);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to fetch all sales.");
+        }
+    };
+
     const verifyAdminPassword = async () => {
         const { data, error } = await supabase.auth.getSession();
         if (error || !data?.session) {
@@ -1042,6 +1053,13 @@ export default function AdminPage() {
                                                 className="rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                                             >
                                                 Today
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleShowAllSales}
+                                                className="rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                            >
+                                                Show All
                                             </button>
                                         </div>
                                     </div>
