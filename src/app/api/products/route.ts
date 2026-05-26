@@ -1,36 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { Product } from "@/lib/types";
-
-const filePath = path.join(process.cwd(), "src/lib/products.json");
-
-function readProducts(): Product[] {
-  try {
-    const data = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-function writeProducts(products: Product[]) {
-  fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
-}
+import { supabase } from "@/lib/supabaseClient";
 
 export async function GET() {
-  const products = readProducts();
+  const { data, error } = await supabase.from("products").select("*");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const products = await Promise.all(
+    (data ?? []).map(async (product: any) => {
+      if (product.image && !product.image.startsWith("http")) {
+        const { data: signedData, error: signedError } = await supabase.storage
+          .from("product-images")
+          .createSignedUrl(product.image, 60 * 60 * 24 * 7);
+
+        if (signedError) {
+          return product;
+        }
+
+        return {
+          ...product,
+          image: signedData?.signedUrl ?? product.image,
+          imagePath: product.image,
+        };
+      }
+
+      return { ...product, imagePath: product.image };
+    })
+  );
+
   return NextResponse.json(products);
 }
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const products = readProducts();
   const newProduct: Product = {
     id: Date.now().toString(),
     ...body,
-  };
-  products.push(newProduct);
-  writeProducts(products);
-  return NextResponse.json(newProduct);
+  } as Product;
+
+  const { data, error } = await supabase.from("products").insert(newProduct).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
 }

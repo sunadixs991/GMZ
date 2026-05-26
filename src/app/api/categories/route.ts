@@ -1,35 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const categoriesFilePath = path.join(process.cwd(), "src/lib/categories.json");
-
-function readCategories(): string[] {
-  try {
-    const data = fs.readFileSync(categoriesFilePath, "utf8");
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Error reading categories:", error);
-    return [];
-  }
-}
-
-function writeCategories(categories: string[]): void {
-  try {
-    fs.writeFileSync(categoriesFilePath, JSON.stringify(categories, null, 2));
-  } catch (error) {
-    console.error("Error writing categories:", error);
-    throw error;
-  }
-}
+import { supabase } from "@/lib/supabaseClient";
 
 export async function GET() {
-  try {
-    const categories = readCategories();
-    return NextResponse.json(categories);
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
-  }
+  const { data, error } = await supabase.from("categories").select("name");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const names = (data ?? []).map((category) => category.name);
+  return NextResponse.json(names);
 }
 
 export async function POST(request: NextRequest) {
@@ -40,16 +16,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Category name is required" }, { status: 400 });
     }
 
-    const categories = readCategories();
+    const { data: existing, error: existingErr } = await supabase.from("categories").select("*").eq("name", name.trim()).maybeSingle();
+    if (existingErr) return NextResponse.json({ error: existingErr.message }, { status: 500 });
+    if (existing) return NextResponse.json({ error: "Category already exists" }, { status: 400 });
 
-    if (categories.includes(name.trim())) {
-      return NextResponse.json({ error: "Category already exists" }, { status: 400 });
-    }
-
-    categories.push(name.trim());
-    writeCategories(categories);
-
-    return NextResponse.json({ message: "Category added successfully" });
+    const { data, error } = await supabase.from("categories").insert({ name: name.trim() }).select().single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({ error: "Failed to add category" }, { status: 500 });
   }

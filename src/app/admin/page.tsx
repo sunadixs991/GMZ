@@ -30,6 +30,8 @@ export default function AdminPage() {
         image: "",
         stock: "0",
     });
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState("");
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [sales, setSales] = useState<SaleRecord[]>([]);
     const [salesDate, setSalesDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -198,10 +200,32 @@ export default function AdminPage() {
         setEditingProduct(null);
         setEditingCategory(null);
         setNewCategoryName("");
+        setImageFile(null);
+        setImagePreview("");
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        let imageUrl = formData.image;
+        if (imageFile) {
+            const uploadForm = new FormData();
+            uploadForm.append("image", imageFile);
+
+            const uploadResponse = await fetch("/api/upload-image", {
+                method: "POST",
+                body: uploadForm,
+            });
+
+            if (!uploadResponse.ok) {
+                const errorData = await uploadResponse.json();
+                alert(errorData.error || "Image upload failed.");
+                return;
+            }
+
+            const uploadResult = await uploadResponse.json();
+            imageUrl = uploadResult.path ?? uploadResult.url;
+        }
 
         const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
         const method = editingProduct ? "PUT" : "POST";
@@ -211,6 +235,7 @@ export default function AdminPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 ...formData,
+                image: imageUrl,
                 price: parseFloat(formData.price),
                 stock: parseInt(formData.stock, 10) || 0,
             }),
@@ -219,6 +244,8 @@ export default function AdminPage() {
         if (response.ok) {
             alert(editingProduct ? "Product updated successfully!" : "Product added successfully!");
             setFormData({ name: "", category: "Ink & Toner", description: "", price: "", image: "", stock: "0" });
+            setImageFile(null);
+            setImagePreview("");
             setEditingProduct(null);
             fetchProducts();
         } else {
@@ -234,9 +261,11 @@ export default function AdminPage() {
             category: product.category || "Ink & Toner",
             description: product.description,
             price: product.price.toString(),
-            image: product.image || "",
+            image: product.imagePath || (Array.isArray(product.image) ? product.image[0] : product.image) || "",
             stock: product.stock?.toString() ?? "0",
         });
+        setImageFile(null);
+        setImagePreview(Array.isArray(product.image) ? product.image[0] : product.image || "");
     };
 
     const handleDelete = async (id: string) => {
@@ -258,6 +287,29 @@ export default function AdminPage() {
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] ?? null;
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please upload a valid image file.");
+            return;
+        }
+
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onload = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveImage = () => {
+        setImageFile(null);
+        setImagePreview("");
+        setFormData((current) => ({ ...current, image: "" }));
     };
 
     const handleAddCategory = async (e: React.FormEvent) => {
@@ -808,70 +860,71 @@ export default function AdminPage() {
                                         </div>
                                     ) : (
                                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                            {products.map((product) => (
-                                                <div key={product.id} className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden">
-                                                    {product.image && (
-                                                        <div className="aspect-video bg-slate-100 relative overflow-hidden">
-                                                            <img
-                                                                src={product.image}
-                                                                alt={product.name}
-                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.style.display = 'none';
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    <div className="p-6">
-                                                        <div className="flex items-start justify-between mb-3">
-                                                            <div className="flex-1 min-w-0">
-                                                                <h3 className="text-lg font-semibold text-slate-900 truncate mb-1">
-                                                                    {product.name}
-                                                                </h3>
-                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                                    {product.category || "General"}
+                                            {products.map((product) => {
+                                                const mainImage = Array.isArray(product.image) ? product.image[0] : product.image;
+                                                return (
+                                                    <div key={product.id} className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden">
+                                                        {mainImage && (
+                                                            <div className="aspect-video bg-slate-100 relative overflow-hidden">
+                                                                <img
+                                                                    src={mainImage}
+                                                                    alt={product.name}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        <div className="p-6">
+                                                            <div className="flex items-start justify-between mb-3">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h3 className="text-lg font-semibold text-slate-900 truncate mb-1">
+                                                                        {product.name}
+                                                                    </h3>
+                                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                        {product.category || "General"}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex gap-1 ml-3">
+                                                                    <button
+                                                                        onClick={() => handleEdit(product)}
+                                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                        title="Edit product"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                        </svg>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDelete(product.id)}
+                                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        title="Delete product"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+                                                                {product.description}
+                                                            </p>
+
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <div>
+                                                                    <p className="text-2xl font-bold text-slate-900">₱{product.price}</p>
+                                                                    <p className="text-sm text-slate-500 mt-1">{product.stock} in stock</p>
+                                                                </div>
+                                                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                                                    product.stock > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                                                }`}>
+                                                                    {product.stock > 0 ? "In Stock" : "Out of Stock"}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex gap-1 ml-3">
-                                                                <button
-                                                                    onClick={() => handleEdit(product)}
-                                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                    title="Edit product"
-                                                                >
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                    </svg>
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDelete(product.id)}
-                                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                    title="Delete product"
-                                                                >
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        <p className="text-slate-600 text-sm mb-4 line-clamp-2">
-                                                            {product.description}
-                                                        </p>
-
-                                                        <div className="flex items-center justify-between gap-3">
-                                                            <div>
-                                                                <p className="text-2xl font-bold text-slate-900">₱{product.price}</p>
-                                                                <p className="text-sm text-slate-500 mt-1">{product.stock} in stock</p>
-                                                            </div>
-                                                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                                product.stock > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                                            }`}>
-                                                                {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                                                            </span>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>
@@ -1009,6 +1062,8 @@ export default function AdminPage() {
                                                 onClick={() => {
                                                     setEditingProduct(null);
                                                     setFormData({ name: "", category: "Ink & Toner", description: "", price: "", image: "", stock: "0" });
+                                                    setImageFile(null);
+                                                    setImagePreview("");
                                                 }}
                                                 className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm"
                                             >
@@ -1088,16 +1143,30 @@ export default function AdminPage() {
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="block text-sm font-semibold text-slate-700">
-                                                        Image URL <span className="text-slate-500">(optional)</span>
+                                                        Product Image <span className="text-slate-500">(optional)</span>
                                                     </label>
                                                     <input
-                                                        type="url"
-                                                        name="image"
-                                                        value={formData.image}
-                                                        onChange={handleChange}
-                                                        placeholder="https://example.com/image.jpg"
-                                                        className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-colors"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleImageUpload}
+                                                        className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none file:mr-4 file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
                                                     />
+                                                    {(imagePreview || formData.image) && (
+                                                        <div className="mt-4 rounded-3xl overflow-hidden border border-slate-200">
+                                                            <img
+                                                                src={imagePreview || formData.image}
+                                                                alt="Product preview"
+                                                                className="h-48 w-full object-cover"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleRemoveImage}
+                                                                className="w-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                                                            >
+                                                                Remove image
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="space-y-2">

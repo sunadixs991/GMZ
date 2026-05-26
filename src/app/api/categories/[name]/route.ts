@@ -1,27 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const categoriesFilePath = path.join(process.cwd(), "src/lib/categories.json");
-
-function readCategories(): string[] {
-  try {
-    const data = fs.readFileSync(categoriesFilePath, "utf8");
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Error reading categories:", error);
-    return [];
-  }
-}
-
-function writeCategories(categories: string[]): void {
-  try {
-    fs.writeFileSync(categoriesFilePath, JSON.stringify(categories, null, 2));
-  } catch (error) {
-    console.error("Error writing categories:", error);
-    throw error;
-  }
-}
+import { supabase } from "@/lib/supabaseClient";
 
 export async function PUT(
   request: NextRequest,
@@ -35,21 +13,14 @@ export async function PUT(
       return NextResponse.json({ error: "New category name is required" }, { status: 400 });
     }
 
-    const categories = readCategories();
-    const index = categories.indexOf(decodeURIComponent(oldName));
+    const decodedOld = decodeURIComponent(oldName);
+    const { data: existing, error: existingErr } = await supabase.from("categories").select("*").eq("name", decodedOld).maybeSingle();
+    if (existingErr) return NextResponse.json({ error: existingErr.message }, { status: 500 });
+    if (!existing) return NextResponse.json({ error: "Category not found" }, { status: 404 });
 
-    if (index === -1) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
-    }
-
-    if (categories.includes(newName.trim()) && newName.trim() !== decodeURIComponent(oldName)) {
-      return NextResponse.json({ error: "Category name already exists" }, { status: 400 });
-    }
-
-    categories[index] = newName.trim();
-    writeCategories(categories);
-
-    return NextResponse.json({ message: "Category updated successfully" });
+    const { data, error } = await supabase.from("categories").update({ name: newName.trim() }).eq("name", decodedOld).select().single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
   }
@@ -61,17 +32,10 @@ export async function DELETE(
 ) {
   try {
     const { name } = await params;
-    const categories = readCategories();
-    const index = categories.indexOf(decodeURIComponent(name));
-
-    if (index === -1) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
-    }
-
-    categories.splice(index, 1);
-    writeCategories(categories);
-
-    return NextResponse.json({ message: "Category deleted successfully" });
+    const decoded = decodeURIComponent(name);
+    const { data, error } = await supabase.from("categories").delete().eq("name", decoded).select().single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }
