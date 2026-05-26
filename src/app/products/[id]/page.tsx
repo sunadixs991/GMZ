@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Product } from "@/lib/types";
 import ProductGallery from "@/components/ProductGallery";
+import { supabase } from "@/lib/supabaseClient";
 
 interface ProductPageProps {
   params: Promise<{
@@ -10,24 +11,39 @@ interface ProductPageProps {
 
 async function fetchProduct(id: string): Promise<Product | null> {
   try {
-    console.log(`[ProductDetail] Fetching product with id: ${id}`);
-    const response = await fetch(`/api/products/${id}`, {
-      cache: "no-store",
-    });
-
-    console.log(`[ProductDetail] API response status: ${response.status} for id: ${id}`);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[ProductDetail] API error for id ${id}:`, response.status, errorText);
+    console.log(`[ProductDetail] Fetching product from Supabase with id: ${id}`);
+    
+    const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+    
+    console.log(`[ProductDetail] Supabase response: error=${error?.message}, data=${data ? 'found' : 'not found'}`);
+    
+    if (error) {
+      console.error(`[ProductDetail] Supabase error for id ${id}:`, error.message);
       return null;
     }
 
-    const product = await response.json();
-    console.log(`[ProductDetail] Successfully fetched product:`, product);
-    return product;
+    if (!data) {
+      console.error(`[ProductDetail] No product found for id: ${id}`);
+      return null;
+    }
+
+    // Handle image signing if it's a storage path
+    if (data?.image && typeof data.image === "string" && !data.image.startsWith("http") && !data.image.startsWith("/")) {
+      console.log(`[ProductDetail] Attempting to sign image: ${data.image}`);
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from("product-images")
+        .createSignedUrl(data.image, 60 * 60 * 24 * 7);
+
+      if (!signedError && signedData?.signedUrl) {
+        data.image = signedData.signedUrl;
+        console.log(`[ProductDetail] Image signed successfully`);
+      }
+    }
+
+    console.log(`[ProductDetail] Successfully fetched product:`, data);
+    return data as Product;
   } catch (err) {
-    console.error(`[ProductDetail] Fetch error for id ${id}:`, err);
+    console.error(`[ProductDetail] Error for id ${id}:`, err);
     return null;
   }
 }
