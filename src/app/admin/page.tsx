@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { Product, SaleRecord } from "@/lib/types";
 import { supabase } from "@/lib/supabaseClient";
 
+const isBrowserSupabaseAvailable = typeof window !== "undefined" && !!supabase;
+
 interface CartItem {
     product: Product;
     quantity: number;
@@ -46,6 +48,11 @@ export default function AdminPage() {
     useEffect(() => {
         setMounted(true);
         const initializeAuth = async () => {
+            if (!isBrowserSupabaseAvailable) {
+                setError("Supabase is not configured in this environment. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.");
+                return;
+            }
+
             const { data, error } = await supabase.auth.getSession();
             if (data?.session && !error) {
                 setIsAuthenticated(true);
