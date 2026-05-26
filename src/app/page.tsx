@@ -228,9 +228,8 @@ export default function Home() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-900">Contact</h3>
               <div className="mt-4 space-y-3 text-sm text-slate-600">
-                <p>Email: gmzcomputerstrading@gmail.com</p>
-                <p>Phone: 0939 280 1103</p>
-                <p>Landline: 032-3458508</p>
+                <p>Email: gmzcomputertrading@gmail.com</p>
+                <p>Phone: 09243706432</p>
               </div>
             </div>
             <div>

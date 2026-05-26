@@ -21,7 +21,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.25em] text-blue-700">Phone</p>
-                  <p className="mt-2 text-slate-700">+63 912 345 6789</p>
+                  <p className="mt-2 text-slate-700">09243706432</p>
                 </div>
               </div>
             </div>
@@ -35,7 +35,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.25em] text-blue-700">Email</p>
-                  <p className="mt-2 text-slate-700">gmzcomputers@email.com</p>
+                  <p className="mt-2 text-slate-700">gmzcomputertrading@gmail.com</p>
                 </div>
               </div>
             </div>
@@ -49,7 +49,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.25em] text-blue-700">Address</p>
-                  <p className="mt-2 text-slate-700">123 Sample Street, Cebu City, Philippines 6000</p>
+                  <p className="mt-2 text-slate-700">Villa Casita, Lapaz, Bogo City</p>
                 </div>
               </div>
             </div>
@@ -63,7 +63,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.25em] text-blue-700">Hours</p>
-                  <p className="mt-2 text-slate-700">Mon – Sat: 8AM – 6PM</p>
+                  <p className="mt-2 text-slate-700">Everyday: 8AM – 6PM</p>
                 </div>
               </div>
             </div>
