@@ -24,9 +24,9 @@ const features = [
 ];
 
 const stats = [
-  { label: "Years operating", value: "8+" },
+  { label: "Years operating", value: "3+" },
   { label: "Products in stock", value: "1.2k+" },
-  { label: "Cebu locations", value: "3" },
+  { label: "Happy Customers", value: "1000+" },
 ];
 
 export default function Home() {

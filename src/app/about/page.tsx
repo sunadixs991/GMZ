@@ -20,7 +20,7 @@ export default function AboutPage() {
               <p className="mt-2 text-sm uppercase tracking-[0.2em] text-blue-700">Products</p>
             </div>
             <div className="rounded-3xl bg-blue-50 p-6 text-center shadow-sm">
-              <p className="text-3xl font-bold text-slate-900">10+</p>
+              <p className="text-3xl font-bold text-slate-900">3+</p>
               <p className="mt-2 text-sm uppercase tracking-[0.2em] text-blue-700">Years Serving Cebu</p>
             </div>
             <div className="rounded-3xl bg-blue-50 p-6 text-center shadow-sm">
