@@ -21,7 +21,10 @@ if (typeof window === "undefined") {
   }
 }
 
-export const supabase = createClient(supabasePublicUrl ?? "", anonKey ?? "");
+export const supabase = typeof window !== "undefined" && supabasePublicUrl && anonKey
+  ? createClient(supabasePublicUrl, anonKey)
+  : (null as any);
+
 export const supabaseServer = typeof window === "undefined" && supabaseUrl && serviceRoleKey
   ? createClient(supabaseUrl, serviceRoleKey)
-  : undefined;
+  : (null as any);
