@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+:root {
+  --background: #eef7ff;
+  --foreground: #0f172a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background-color: #bfdbfe;
+  color: #0f172a;
+}
+
+@media print {
+  @page {
+    size: auto;
+    margin: 12mm;
+  }
+
+  html, body {
+    background: white !important;
+    color: #0f172a !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .receipt-printable-overlay {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .receipt-print-section,
+  .receipt-print-section * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .print-only {
+    display: none !important;
+  }
+
+  .receipt-print-section {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .receipt-printable {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 24px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  .receipt-printable *,
+  .receipt-print-section * {
+    visibility: visible !important;
+    color: #0f172a !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1",
+    "name": "Epson 003 Ink Set (CMYK)",
+    "description": "Original Epson 003 ink bottles for EcoTank printers. Full CMYK set.",
+    "price": 1299,
+    "category": "Ink & Toner",
+    "stock": 30,
+    "image": ""
+  },
+  {
+    "id": "2",
+    "name": "USB-C to USB-A Cable 1.5m",
+    "description": "Durable braided cable for fast data transfer and charging.",
+    "price": 149,
+    "category": "Cables & Adapters",
+    "stock": 0
+  },
+  {
+    "id": "3",
+    "name": "Wireless Keyboard & Mouse",
+    "description": "Compact wireless combo, 2.4GHz, long battery life.",
+    "price": 699,
+    "category": "Keyboards & Mice",
+    "stock": 0
+  },
+  {
+    "id": "4",
+    "name": "A4 Bond Paper (500 sheets)",
+    "description": "Bright white 70gsm A4 paper, ideal for all printers.",
+    "price": 299,
+    "category": "Paper & Notebooks",
+    "stock": 496,
+    "image": ""
+  }
+]
