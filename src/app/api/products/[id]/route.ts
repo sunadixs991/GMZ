@@ -6,20 +6,25 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  console.log(`[API /api/products/[id]] GET request for id: ${id}`);
 
   const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+  console.log(`[API /api/products/[id]] Supabase query for id ${id}: error=${error?.message}, data=${data ? 'found' : 'not found'}`);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (data?.image && !data.image.startsWith("http")) {
+    console.log(`[API /api/products/[id]] Attempting to sign image for id ${id}: ${data.image}`);
     const { data: signedData, error: signedError } = await supabase.storage
       .from("product-images")
       .createSignedUrl(data.image, 60 * 60 * 24 * 7);
 
+    console.log(`[API /api/products/[id]] Image signing: error=${signedError?.message}, signed=${!!signedData?.signedUrl}`);
     if (!signedError && signedData?.signedUrl) {
       return NextResponse.json({ ...data, image: signedData.signedUrl });
     }
   }
 
+  console.log(`[API /api/products/[id]] Returning product data for id ${id}`);
   return NextResponse.json(data);
 }
 

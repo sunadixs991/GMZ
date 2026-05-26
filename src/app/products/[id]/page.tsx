@@ -9,24 +9,36 @@ interface ProductPageProps {
 }
 
 async function fetchProduct(id: string): Promise<Product | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-  const response = await fetch(`${baseUrl}/api/products/${id}`, {
-    cache: "no-store",
-  });
+  try {
+    console.log(`[ProductDetail] Fetching product with id: ${id}`);
+    const response = await fetch(`/api/products/${id}`, {
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
+    console.log(`[ProductDetail] API response status: ${response.status} for id: ${id}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[ProductDetail] API error for id ${id}:`, response.status, errorText);
+      return null;
+    }
+
+    const product = await response.json();
+    console.log(`[ProductDetail] Successfully fetched product:`, product);
+    return product;
+  } catch (err) {
+    console.error(`[ProductDetail] Fetch error for id ${id}:`, err);
     return null;
   }
-
-  return response.json();
 }
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { id } = await params;
+  console.log(`[ProductDetailPage] Rendering page for product id: ${id}`);
   const product = await fetchProduct(id);
 
   if (!product) {
+    console.error(`[ProductDetailPage] Product not found for id: ${id}`);
     return (
       <div className="min-h-screen bg-[#ebf5ff] px-6 py-10 sm:px-10">
         <div className="max-w-3xl mx-auto rounded-3xl bg-white p-10 shadow-lg text-center">
