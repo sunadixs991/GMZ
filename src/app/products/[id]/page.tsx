@@ -1,22 +1,26 @@
 import Link from "next/link";
 import { Product } from "@/lib/types";
 import ProductGallery from "@/components/ProductGallery";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseClient";
 
 interface ProductPageProps {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
 async function fetchProduct(id: string): Promise<Product | null> {
   try {
     console.log(`[ProductDetail] Fetching product from Supabase with id: ${id}`);
-    
-    const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
-    
+
+    if (!supabaseServer) {
+      throw new Error("Server Supabase client is not configured. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+    }
+
+    const { data, error } = await supabaseServer.from("products").select("*").eq("id", id).single();
+
     console.log(`[ProductDetail] Supabase response: error=${error?.message}, data=${data ? 'found' : 'not found'}`);
-    
+
     if (error) {
       console.error(`[ProductDetail] Supabase error for id ${id}:`, error.message);
       return null;
@@ -30,7 +34,7 @@ async function fetchProduct(id: string): Promise<Product | null> {
     // Handle image signing if it's a storage path
     if (data?.image && typeof data.image === "string" && !data.image.startsWith("http") && !data.image.startsWith("/")) {
       console.log(`[ProductDetail] Attempting to sign image: ${data.image}`);
-      const { data: signedData, error: signedError } = await supabase.storage
+      const { data: signedData, error: signedError } = await supabaseServer.storage
         .from("product-images")
         .createSignedUrl(data.image, 60 * 60 * 24 * 7);
 
