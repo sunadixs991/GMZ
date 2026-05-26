@@ -640,38 +640,40 @@ export default function AdminPage() {
 
     if (!isAuthenticated) {
         return (
-            <div className="bg-[#eef7ff] py-16">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="rounded-[2rem] bg-white p-10 shadow-sm ring-1 ring-slate-200 sm:p-14">
-                        <div className="text-center">
-                            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">
-                                Admin Access
+            <div className="bg-gradient-to-br from-[#eef7ff] via-[#f3f9ff] to-white min-h-screen py-20 text-slate-900">
+                <div className="mx-auto max-w-2xl px-4 sm:px-8">
+                    <div className="relative rounded-[2.5rem] bg-white/90 p-10 sm:p-14 shadow-xl ring-2 ring-blue-100 overflow-hidden">
+                        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-blue-100 opacity-40 blur-2xl" />
+                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 h-24 w-2/3 rounded-full bg-blue-200 opacity-20 blur-2xl" />
+                        <div className="text-center space-y-4">
+                            <p className="text-xs font-bold uppercase tracking-[0.32em] text-blue-700 inline-flex items-center gap-2">
+                                <span className="animate-bounce">🔒</span> Admin Access
                             </p>
-                            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
                                 Admin Login
                             </h1>
-                            <p className="mt-2 text-sm text-slate-600">Sign in with your administrator account to manage the store.</p>
+                            <p className="text-base text-slate-600 max-w-xl mx-auto">Sign in with your administrator account to manage the store.</p>
                         </div>
-                        <form onSubmit={handleLogin} className="mt-10 max-w-md mx-auto">
+                        <form onSubmit={handleLogin} className="mt-10 max-w-md mx-auto space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700">Email</label>
+                                <label className="block text-sm font-semibold text-slate-700">Email</label>
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     placeholder="you@company.com"
                                 />
                             </div>
-                            <div className="mt-4">
-                                <label className="block text-sm font-medium text-slate-700">Password</label>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700">Password</label>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     placeholder="Enter admin password"
                                 />
                             </div>
@@ -680,7 +682,7 @@ export default function AdminPage() {
                             )}
                             <button
                                 type="submit"
-                                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 shadow-lg hover:shadow-xl"
                             >
                                 Login
                             </button>
@@ -692,9 +694,11 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="bg-[#eef7ff] py-16">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="rounded-[2rem] bg-white p-10 shadow-sm ring-1 ring-slate-200 sm:p-14">
+        <div className="bg-gradient-to-br from-[#eef7ff] via-[#f3f9ff] to-white min-h-screen py-20 text-slate-900">
+            <div className="mx-auto max-w-7xl px-4 sm:px-8">
+                <div className="relative rounded-[2.5rem] bg-white/90 p-10 sm:p-14 shadow-xl ring-2 ring-blue-100 overflow-hidden">
+                    <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-blue-100 opacity-40 blur-2xl" />
+                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 h-24 w-2/3 rounded-full bg-blue-200 opacity-20 blur-2xl" />
                     <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">
