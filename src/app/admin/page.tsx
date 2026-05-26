@@ -44,6 +44,7 @@ export default function AdminPage() {
     const [posQuery, setPosQuery] = useState("");
     const [showReceipt, setShowReceipt] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
     useEffect(() => {
         setMounted(true);
@@ -66,9 +67,16 @@ export default function AdminPage() {
     }, []);
 
     const fetchProducts = async () => {
-        const response = await fetch("/api/products");
-        const data = await response.json();
-        setProducts(data);
+        setIsLoadingProducts(true);
+        try {
+            const response = await fetch("/api/products");
+            const data = await response.json();
+            setProducts(data);
+        } catch (err) {
+            setProducts([]);
+        } finally {
+            setIsLoadingProducts(false);
+        }
     };
 
     const fetchCategories = async () => {
@@ -731,7 +739,16 @@ export default function AdminPage() {
                                         </div>
 
                                         <div className="grid gap-4 sm:grid-cols-2">
-                                            {(
+                                            {isLoadingProducts ? (
+                                                <div className="sm:col-span-2 flex flex-col items-center justify-center py-8">
+                                                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center animate-pulse">
+                                                        <svg className="w-5 h-5 text-blue-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v4m0 8v4m8-8h-4M4 12H8" />
+                                                        </svg>
+                                                    </div>
+                                                    <p className="text-slate-500 text-sm mt-3">Loading products…</p>
+                                                </div>
+                                            ) : (
                                                 products
                                                     .filter((product) =>
                                                         product.name.toLowerCase().includes(posQuery.toLowerCase()) ||
@@ -878,7 +895,16 @@ export default function AdminPage() {
                                         </button>
                                     </div>
 
-                                    {products.length === 0 ? (
+                                    {isLoadingProducts ? (
+                                        <div className="flex flex-col items-center justify-center py-40 gap-4">
+                                            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center animate-pulse">
+                                                <svg className="w-6 h-6 text-blue-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v4m0 8v4m8-8h-4M4 12H8" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-slate-500 text-sm">Loading products…</p>
+                                        </div>
+                                    ) : products.length === 0 ? (
                                         <div className="text-center py-16">
                                             <div className="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                                                 <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
