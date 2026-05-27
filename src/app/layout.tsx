@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   description: "Your source for office and computer supplies",
 };
 
+<body id="top"></body>
+
+
 export default function RootLayout({
   children,
 }: Readonly<{
