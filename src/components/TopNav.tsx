@@ -11,7 +11,7 @@ export default function TopNav() {
     <header className="sticky top-0 z-30 bg-white/95 border-b border-slate-200 backdrop-blur-lg shadow-md">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-4 group">
-          <span className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-700 to-blue-900 text-base font-semibold uppercase tracking-[0.22em] text-white shadow-lg group-hover:scale-105 transition-transform">
+          <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 text-base font-semibold uppercase tracking-[0.22em] text-white shadow-lg group-hover:scale-105 transition-transform">
             GMZ
           </span>
           <div className="hidden flex-col leading-tight sm:flex">
